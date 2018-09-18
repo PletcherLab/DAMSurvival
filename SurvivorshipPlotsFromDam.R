@@ -26,25 +26,44 @@ colnames(DAM13)<-c("Num",	"Date",	"Time",	"Status",	"Blank1",	"Blank2",	"Blank3"
 
 #Merge date and time columns into one and identify time format. Some issue with time formating, 
 #guessing problems are with the month abbreviation.Tried POSIXct and POSIXlt.
-DAM13$CalDateTime <- paste(DAM13$Date, DAM13$Time)
-DAM13$CalDateTime <- as.POSIXct ("CalDateTime", format = "%d-%b-%y %H:%M:%S")
-
-#Paste and identify time in one step. Didn't work
-#DAM13$CalDateTime <- as.POSIXct(paste(DAM13$Date,DAM13$Time), format="%d-%m-%y %H:%M:%S")
+DAM13$CalDateTime <- as.POSIXct (paste(DAM13$Date, DAM13$Time), format = "%d-%b-%y %H:%M:%S")
 
 #Identify start time based on status changing from 51 to 1. Save all 1s as vector RecordingTime. 1st element is StartTime
-RecordingTime <- DAM13[DAM13$Status == 1, "Time"]    #change time to CalDateTime once issue is sorted
-StartTime <- RecordingTime[1]
+DAM13<-subset(DAM13,DAM13$Status==1)
+
+
+
+
+GetDeathTime<-function(data,times){
+  tmp<-which(data>0)
+  if(length(tmp)==0){
+    result<-NA
+  }
+  else {
+    time.index<-tmp[length(tmp)]
+    result<-times[time.index]  
+  }
+  result
+}
+
 
 #Extract last element from time based on a positive activity value in an activity column
 #First index so that only channel data greater than 0 is included
-lapply(DAM13, [,11:43], x <- which(DAM13>0))
+death.times<-(lapply(DAM13[,11:42],GetDeathTime,DAM13$CalDateTime))
 
-x[length(x)]
+tmp<-rep(-1,32)
+for(i in 1:32){
+  if(is.na(tmp[i])){
+    tmp[i]<-NA
+  }
+  else {
+    tmp[i]<-difftime(death.times[[i]],DAM13$CalDateTime[1],units="hours")
+  }
+}
 
+hours.at.death<-tmp
+rm(tmp)
 
-
-DAM13[length("CalDateTime"),"CalDateTime"]
 
 
 
