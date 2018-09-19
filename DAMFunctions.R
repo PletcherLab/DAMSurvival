@@ -1,17 +1,63 @@
 ## SurvivalDAMFunctions
 
+#Read in multiple text files and have them be individual data frames named for the number of the monitor file and assign colnames strategy 1
+#strategy: write function to read in files as dataframes. Put function in lapply to do it for all files fo that format in directory.
+#pass lapply a list of the Monitor files
+GetDAMFiles <- function(z) {
+  dam <- fread(z, stringsAsFactors = FALSE)
+  colnames(dam) <- c("Num",	"Date",	"Time",	"Status",	"Blank1",	"Blank2",	"Blank3",	"Blank4",	"Blank5",	
+                     "Light",	"Channel1",	"Channel2",	"Channel3",	"Channel4",	"Channel5",	"Channel6",	"Channel7",	"Channel8",
+                     "Channel9",	"Channel10",	"Channel11",	"Channel12",	"Channel13",	"Channel14",	"Channel15",	
+                     "Channel16",	"Channel17",	"Channel18",	"Channel19",	"Channel20",	"Channel21",	"Channel22",
+                     "Channel23",	"Channel24",	"Channel25",	"Channel26",	"Channel27",	"Channel28",	"Channel29",	
+                     "Channel30",	"Channel31",	"Channel32")
+  return(as.data.frame(dam))
+}
+
+dam.files.list <- list.files(path = getwd(), pattern = "*.txt", all.files = FALSE,  full.names = FALSE, recursive = FALSE,
+                             ignore.case = FALSE, include.dirs = FALSE)
+dam <- lapply(dam.files.list, GetDAMFiles)
+#returns list of unnamed data frames. Need to name with proper number and DAM prefix to pass to the next functions.
+
+pattern <- "Monitor"
+replacement <- "DAM"
+dam.files.list <- gsub(pattern, replacement,  dam.files.list)
+
+#applies the names to the first columns of all dataframes
+dam <- lapply(dam, setNames, new.names)
+
+#patrn <- "([0-9][0-9])\\.txt"
+#dam$name <- paste("DAM",gsub(".txt", "", regmatches(z,regexpr(patrn, z))),sep="")
+#file_names <- unname(sapply(file_list, function(z) paste(path, x, sep = "")))
+
+#dat <- rbindlist(data_list, use.names = TRUE) 
 
 
+GetDAMFiles <- function(){
+ 
+  dam.files <- list.files(path = getwd(), pattern = "*.txt", all.files = FALSE,  full.names = FALSE, recursive = FALSE,
+               ignore.case = FALSE, include.dirs = FALSE)
 
-DAM13 <- read.table("Monitor13.txt", header = FALSE)
-colnames(DAM13)<-c("Num",	"Date",	"Time",	"Status",	"Blank1",	"Blank2",	"Blank3",	"Blank4",	"Blank5",	
-                   "Light",	"Channel1",	"Channel2",	"Channel3",	"Channel4",	"Channel5",	"Channel6",	"Channel7",	"Channel8",
-                   "Channel9",	"Channel10",	"Channel11",	"Channel12",	"Channel13",	"Channel14",	"Channel15",	
-                   "Channel16",	"Channel17",	"Channel18",	"Channel19",	"Channel20",	"Channel21",	"Channel22",
-                   "Channel23",	"Channel24",	"Channel25",	"Channel26",	"Channel27",	"Channel28",	"Channel29",	
-                   "Channel30",	"Channel31",	"Channel32")
+  for (i in length(dam.files)) {
+      monitor <- read.table(dam.files[i], header = FALSE)
+      colnames(DAM13)<-c("Num",	"Date",	"Time",	"Status",	"Blank1",	"Blank2",	"Blank3",	"Blank4",	"Blank5",	
+                     "Light",	"Channel1",	"Channel2",	"Channel3",	"Channel4",	"Channel5",	"Channel6",	"Channel7",	"Channel8",
+                     "Channel9",	"Channel10",	"Channel11",	"Channel12",	"Channel13",	"Channel14",	"Channel15",	
+                     "Channel16",	"Channel17",	"Channel18",	"Channel19",	"Channel20",	"Channel21",	"Channel22",
+                     "Channel23",	"Channel24",	"Channel25",	"Channel26",	"Channel27",	"Channel28",	"Channel29",	
+                     "Channel30",	"Channel31",	"Channel32")
+  }
+}
 
+#DAM13 <- read.table("Monitor13.txt", header = FALSE)
+#colnames(DAM13)<-c("Num",	"Date",	"Time",	"Status",	"Blank1",	"Blank2",	"Blank3",	"Blank4",	"Blank5",	
+#                   "Light",	"Channel1",	"Channel2",	"Channel3",	"Channel4",	"Channel5",	"Channel6",	"Channel7",	"Channel8",
+#                   "Channel9",	"Channel10",	"Channel11",	"Channel12",	"Channel13",	"Channel14",	"Channel15",	
+#                   "Channel16",	"Channel17",	"Channel18",	"Channel19",	"Channel20",	"Channel21",	"Channel22",
+#                   "Channel23",	"Channel24",	"Channel25",	"Channel26",	"Channel27",	"Channel28",	"Channel29",	
+#                   "Channel30",	"Channel31",	"Channel32")
 
+#function to find the index number for the last activity count
 GetDeathTime<-function(data,times){
   tmp<-which(data>0)
   if(length(tmp)==0){
@@ -25,8 +71,7 @@ GetDeathTime<-function(data,times){
 }
 
 GetHoursDeath<-function(dam){
-  #Merge date and time columns into one and identify time format. Some issue with time formating, 
-  #guessing problems are with the month abbreviation.Tried POSIXct and POSIXlt.
+  
   dam$CalDateTime <- as.POSIXct (paste(dam$Date, dam$Time), format = "%d-%b-%y %H:%M:%S")
   
   #Identify start time based on status changing from 51 to 1. Save all 1s as vector RecordingTime. 1st element is StartTime
