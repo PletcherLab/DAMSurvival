@@ -1,19 +1,21 @@
 ## SurvivalDAMFunctions
+require(data.table)
+
+
+GetDAMFiles <- function(z) {
+  dam <- fread(z, stringsAsFactors = FALSE)
+  colnames(dam) <- c("Num",	"Date",	"Time",	"Status",	"Blank1",	"Blank2",	"Blank3",	"Blank4",	"Blank5",	
+                     "Light",	"Channel1",	"Channel2",	"Channel3",	"Channel4",	"Channel5",	"Channel6",	"Channel7",	"Channel8",
+                     "Channel9",	"Channel10",	"Channel11",	"Channel12",	"Channel13",	"Channel14",	"Channel15",	
+                     "Channel16",	"Channel17",	"Channel18",	"Channel19",	"Channel20",	"Channel21",	"Channel22",
+                     "Channel23",	"Channel24",	"Channel25",	"Channel26",	"Channel27",	"Channel28",	"Channel29",	
+                     "Channel30",	"Channel31",	"Channel32")
+  return(as.data.frame(dam))
+}
+
 
 #Function to import and name all .txt files in the directory
 ImportDAMData <- function(){
-install.packages("data.table")
-  GetDAMFiles <- function(z) {
-      dam <- fread(z, stringsAsFactors = FALSE)
-      colnames(dam) <- c("Num",	"Date",	"Time",	"Status",	"Blank1",	"Blank2",	"Blank3",	"Blank4",	"Blank5",	
-                       "Light",	"Channel1",	"Channel2",	"Channel3",	"Channel4",	"Channel5",	"Channel6",	"Channel7",	"Channel8",
-                      "Channel9",	"Channel10",	"Channel11",	"Channel12",	"Channel13",	"Channel14",	"Channel15",	
-                      "Channel16",	"Channel17",	"Channel18",	"Channel19",	"Channel20",	"Channel21",	"Channel22",
-                      "Channel23",	"Channel24",	"Channel25",	"Channel26",	"Channel27",	"Channel28",	"Channel29",	
-                      "Channel30",	"Channel31",	"Channel32")
-      return(as.data.frame(dam))
-   }
-
   dam.files.list <- list.files(path = getwd(), pattern = "*.txt", all.files = FALSE,  full.names = FALSE, recursive = FALSE,
                                ignore.case = FALSE, include.dirs = FALSE)
   dam <- lapply(dam.files.list, GetDAMFiles)
@@ -22,11 +24,10 @@ install.packages("data.table")
   pattern <- "Monitor"
   replacement <- "DAM"
   dam.files.list <- gsub(pattern, replacement,  dam.files.list)
-
-#applies the names to the first columns of all dataframes. Want it to apply the names to the elements of the list (dataframes)
-  dam <- lapply(dam, setNames, dam.files.list)
-
-#perhaps it's best to leave the dataframes as part of the list then I can pass the list to the next function. 
+  names(dam)<-dam.files.list
+  
+  dam
+  #perhaps it's best to leave the dataframes as part of the list then I can pass the list to the next function. 
 }
 
 #function to find the index number for the last activity count
@@ -66,3 +67,18 @@ GetHoursDeath<-function(dam){
   hours.at.death<-tmp
   hours.at.death
 }
+
+
+GetHourofDeathDataFrame<-function(dam,damnum){
+  had<-GetHoursDeath(dam)
+  damnumber<-rep(damnum,32)
+  pos<-1:32
+  trt<-rep(NA,32)
+  
+  result<-data.frame(damnumber,pos,trt,had)
+  names(result)<-c("DAM","Pos","Trt","Death")
+  result
+}
+
+
+
