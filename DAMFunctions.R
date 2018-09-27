@@ -5,6 +5,7 @@ require(survival)
 library(survival)
 
 
+
 #--------------------------------------------------------#
 ## Functions for importing DAM data, adding new columns 
 ## and isolating data of interest.
@@ -118,7 +119,7 @@ GetHoursatDeathForDAM<-function(dam){
   trt<-rep(NA,32)
   
   result<-data.frame(damnumber,pos,trt,had)
-  names(result)<-c("DAM","Pos","Trt","Death")
+  names(result)<-c("DAM","Pos","Trt","HrsAtDeath")
   result
 }
 
