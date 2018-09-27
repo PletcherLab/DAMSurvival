@@ -4,25 +4,20 @@ library(data.table)
 require(survival)
 library(survival)
 
-GetDAMFiles <- function(z) {
-  dam <- fread(z, stringsAsFactors = FALSE)
-  colnames(dam) <- c("Num",	"Date",	"Time",	"Status",	"Blank1",	"Blank2",	"Blank3",	"Blank4",	"Blank5",	
-                     "Light",	"Channel1",	"Channel2",	"Channel3",	"Channel4",	"Channel5",	"Channel6",	"Channel7",	"Channel8",
-                     "Channel9",	"Channel10",	"Channel11",	"Channel12",	"Channel13",	"Channel14",	"Channel15",	
-                     "Channel16",	"Channel17",	"Channel18",	"Channel19",	"Channel20",	"Channel21",	"Channel22",
-                     "Channel23",	"Channel24",	"Channel25",	"Channel26",	"Channel27",	"Channel28",	"Channel29",	
-                     "Channel30",	"Channel31",	"Channel32")
-  return(as.data.frame(dam))
-}
+
+#--------------------------------------------------------#
+## Functions for importing DAM data, adding new columns 
+## and isolating data of interest.
+#--------------------------------------------------------#
 
 #Need to specify monitor files
 #Function to import and name all .txt files in the directory.
 ImportDAMData <- function(){
   dam.files.list <- list.files(path = getwd(), pattern = "M{1,}.*txt", all.files = FALSE,  full.names = FALSE, recursive = FALSE,
                                ignore.case = FALSE, include.dirs = FALSE)
-  dam <- lapply(dam.files.list, GetDAMFiles)
-#returns list of unnamed data frames. Need to name with proper number and DAM prefix to pass to the next functions.
-
+  dam <- lapply(dam.files.list, GetDAMFile)
+  #returns list of unnamed data frames. Need to name with proper number and DAM prefix to pass to the next functions.
+  
   pattern <- "Monitor"
   replacement <- "DAM"
   dam.files.list <- gsub(pattern, replacement,  dam.files.list)
@@ -32,45 +27,24 @@ ImportDAMData <- function(){
   #perhaps it's best to leave the dataframes as part of the list then I can pass the list to the next function. 
 }
 
-#need function to pass list, with name, one dataframe at a time to GetHoursDeath which doesn't work on a list. 
-#can use names from dam.files.list
-ExtractDAMFiles <- function(dam){
-  dam.numbers<-names(dam)
-  for(i in 1:length(dam)){
-    #pull out dataframe with it's name. Pass it to GetHoursDeath. Name comes from dam.files.list[i]
-    #deathhours<-lapply(dam[i],GetHoursDeath) 
-    tmp<-GetMonitorNumberFromName(dam.numbers[i])
-    deathhours<-GetHourofDeathDataFrame(dam[[i]],tmp) 
-    if(exists("results")){
-      results<-rbind(results,deathhours)
-    }
-    else {
-      results<-deathhours
-    }
-  }
-  results
+GetDAMFile <- function(z) {
+  dam <- fread(z, stringsAsFactors = FALSE)
+  colnames(dam) <- c("Num",	"Date",	"Time",	"Status",	"Blank1",	"Blank2",	"Blank3",	"Blank4",	"Blank5",	
+                     "Light",	"Channel1",	"Channel2",	"Channel3",	"Channel4",	"Channel5",	"Channel6",	"Channel7",	"Channel8",
+                     "Channel9",	"Channel10",	"Channel11",	"Channel12",	"Channel13",	"Channel14",	"Channel15",	
+                     "Channel16",	"Channel17",	"Channel18",	"Channel19",	"Channel20",	"Channel21",	"Channel22",
+                     "Channel23",	"Channel24",	"Channel25",	"Channel26",	"Channel27",	"Channel28",	"Channel29",	
+                     "Channel30",	"Channel31",	"Channel32")
+  
+  
+  dam<-as.data.frame(dam)
+  dam<-IsolateLastExperiment(dam)
+  dam<-AddCalcDateTime(dam)
+  
+  monitor.number<-GetMonitorNumberFromFileName(z)
+  dam<-list(Number=monitor.number,Data=dam)
+  dam
 }
-
-GetMonitorNumberFromName<-function(s){
-  s<-substr(s,4,nchar(s))
-  tmp<-regexpr("\\.",s)[1]
-  s<-substr(s,1,tmp-1)
-  as.numeric(s)
-}
-
-#function to find the index number for the last activity count
-GetDeathTime<-function(data,times){
-  tmp<-which(data>0)
-  if(length(tmp)==0){
-    result<-NA
-  }
-  else {
-    time.index<-tmp[length(tmp)]
-    result<-times[time.index]  
-  }
-  result
-}
-
 
 IsolateLastExperiment<-function(dam){
   status.runs<-rle(dam$Status)
@@ -83,23 +57,47 @@ IsolateLastExperiment<-function(dam){
   new.dam
 }
 
-
-GetHoursDeath<-function(dam){
+AddCalcDateTime<-function(dam){
   #Identify start time based on status changing from 51 to 1. Save all 1s as vector RecordingTime. 1st element is StartTime
   dam<-subset(dam,dam$Status==1)
   
-  
-  
-  
   dam$CalDateTime <- as.POSIXct (paste(dam$Date, dam$Time), format = "%d %b %y %H:%M:%S")
-
+  
   if(sum(is.na(dam$CalDateTime))>5)
     dam$CalDateTime <- as.POSIXct (paste(dam$Date, dam$Time), format = "%d-%b-%y %H:%M:%S") 
-  
-  
+  dam
+}
+
+GetMonitorNumberFromFileName<-function(s){
+  s<-substr(s,8,nchar(s))
+  tmp<-regexpr("\\.",s)[1]
+  s<-substr(s,1,tmp-1)
+  as.numeric(s)
+}
+
+
+#--------------------------------------------------------#
+### Functions extracting death times and organizing into data frame.
+#--------------------------------------------------------#
+
+#function to find the index number for the last activity count
+GetSingleDeathTime<-function(data,times){
+  tmp<-which(data>0)
+  if(length(tmp)==0){
+    result<-NA
+  }
+  else {
+    time.index<-tmp[length(tmp)]
+    result<-times[time.index]  
+  }
+  result
+}
+
+GetHoursAtDeathVector<-function(dam){
+  dam.data<-dam$Data
   #Extract last element from time based on a positive activity value in an activity column
   #First index so that only channel data greater than 0 is included
-  death.times<-(lapply(dam[,11:42],GetDeathTime,dam$CalDateTime))
+  death.times<-(lapply( dam.data[,11:42],GetSingleDeathTime, dam.data$CalDateTime))
   
   tmp<-rep(-1,32)
   for(i in 1:32){
@@ -107,17 +105,15 @@ GetHoursDeath<-function(dam){
       tmp[i]<-NA
     }
     else {
-      tmp[i]<-difftime(death.times[[i]],dam$CalDateTime[1],units="hours")
+      tmp[i]<-difftime(death.times[[i]], dam.data$CalDateTime[1],units="hours")
     }
   }
-  
   hours.at.death<-tmp
   hours.at.death
 }
-
-GetHourofDeathDataFrame<-function(dam,damnum){
-  had<-GetHoursDeath(dam)
-  damnumber<-rep(damnum,32)
+GetHoursatDeathForDAM<-function(dam){
+  had<-GetHoursAtDeathVector(dam)
+  damnumber<-rep(dam$Number,32)
   pos<-1:32
   trt<-rep(NA,32)
   
@@ -126,12 +122,38 @@ GetHourofDeathDataFrame<-function(dam,damnum){
   result
 }
 
-#function to read in ExpDesign.txt file and assign a treatment group to the trt column of result. 
-GetExpDesign <- function(){
-expdesign <- read.table("ExpDesign.txt", header = TRUE)
-
+#need function to pass list, with name, one dataframe at a time to GetHoursDeath which doesn't work on a list. 
+#can use names from dam.files.list
+GetHoursAtDeathForDAMList <- function(dam.list){
+  for(i in 1:length(dam.list)){
+    #pull out dataframe with it's name. Pass it to GetHoursDeath. Name comes from dam.files.list[i]
+    #deathhours<-lapply(dam[i],GetHoursDeath) 
+    deathhours<-GetHoursatDeathForDAM(dam.list[[i]]) 
+    if(exists("results")){
+      results<-rbind(results,deathhours)
+    }
+    else {
+      results<-deathhours
+    }
+  }
+  results
 }
 
+
+#--------------------------------------------------------#
+### Functions to import  design and sort tubes into treatments.
+#--------------------------------------------------------#
+#function to read in ExpDesign.txt file and assign a treatment group to the trt column of result. 
+GetExpDesign <- function(){
+  expdesign <- read.table("ExpDesign.txt", header = TRUE)
+  
+}
+
+
+
+#--------------------------------------------------------#
+### Functions for survival analysis.
+#--------------------------------------------------------#
 #Survival plotting code
 SurvPlots <- function(result){
   surv.object<-Surv(result$Death,rep(1,length(result$Death)))
@@ -141,4 +163,16 @@ SurvPlots <- function(result){
   print(SurvComp)
   plot(SurvComp)
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
