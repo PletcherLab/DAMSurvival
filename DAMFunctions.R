@@ -1,6 +1,8 @@
 ## SurvivalDAMFunctions
 require(data.table)
-
+library(data.table)
+require(survival)
+library(survival)
 
 GetDAMFiles <- function(z) {
   dam <- fread(z, stringsAsFactors = FALSE)
@@ -13,10 +15,10 @@ GetDAMFiles <- function(z) {
   return(as.data.frame(dam))
 }
 
-
-#Function to import and name all .txt files in the directory
+#Need to specify monitor files
+#Function to import and name all .txt files in the directory.
 ImportDAMData <- function(){
-  dam.files.list <- list.files(path = getwd(), pattern = "*.txt", all.files = FALSE,  full.names = FALSE, recursive = FALSE,
+  dam.files.list <- list.files(path = getwd(), pattern = "M{1,}.*txt", all.files = FALSE,  full.names = FALSE, recursive = FALSE,
                                ignore.case = FALSE, include.dirs = FALSE)
   dam <- lapply(dam.files.list, GetDAMFiles)
 #returns list of unnamed data frames. Need to name with proper number and DAM prefix to pass to the next functions.
@@ -29,6 +31,17 @@ ImportDAMData <- function(){
   dam
   #perhaps it's best to leave the dataframes as part of the list then I can pass the list to the next function. 
 }
+
+#need function to pass list, with name, one dataframe at a time to GetHoursDeath which doesn't work on a list. 
+#can use names from dam.files.list
+ExtractDAMFiles <- function(dam){
+  tmp2<-length(dam)
+  for(i in tmp2){
+    #pull out dataframe with it's name. Pass it to GetHoursDeath. Name comes from dam.files.list[i]
+    deathhours<-lapply(dam.files.list[i],GetHoursDeath) 
+  }
+}
+
 
 #function to find the index number for the last activity count
 GetDeathTime<-function(data,times){
@@ -68,7 +81,6 @@ GetHoursDeath<-function(dam){
   hours.at.death
 }
 
-
 GetHourofDeathDataFrame<-function(dam,damnum){
   had<-GetHoursDeath(dam)
   damnumber<-rep(damnum,32)
@@ -80,5 +92,19 @@ GetHourofDeathDataFrame<-function(dam,damnum){
   result
 }
 
+#function to read in ExpDesign.txt file and assign a treatment group to the trt column of result. 
+GetExpDesign <- function(){
+expdesign <- read.table("ExpDesign.txt", header = TRUE)
 
+}
+
+#Survival plotting code
+SurvPlots <- function(result){
+  surv.object<-Surv(result$Death,rep(1,length(result$Death)))
+  SurvCurve <- survfit(surv.object~result$Trt)
+  SurvComp <- survdiff(surv.object~result$Trt)
+  plot(SurvCurve, col=c(3,4))
+  print(SurvComp)
+  plot(SurvComp)
+}
 
