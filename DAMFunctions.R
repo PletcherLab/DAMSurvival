@@ -35,13 +35,28 @@ ImportDAMData <- function(){
 #need function to pass list, with name, one dataframe at a time to GetHoursDeath which doesn't work on a list. 
 #can use names from dam.files.list
 ExtractDAMFiles <- function(dam){
-  tmp2<-length(dam)
-  for(i in tmp2){
+  dam.numbers<-names(dam)
+  for(i in 1:length(dam)){
     #pull out dataframe with it's name. Pass it to GetHoursDeath. Name comes from dam.files.list[i]
-    deathhours<-lapply(dam.files.list[i],GetHoursDeath) 
+    #deathhours<-lapply(dam[i],GetHoursDeath) 
+    tmp<-GetMonitorNumberFromName(dam.numbers[i])
+    deathhours<-GetHourofDeathDataFrame(dam[[i]],tmp) 
+    if(exists("results")){
+      results<-rbind(results,deathhours)
+    }
+    else {
+      results<-deathhours
+    }
   }
+  results
 }
 
+GetMonitorNumberFromName<-function(s){
+  s<-substr(s,4,nchar(s))
+  tmp<-regexpr("\\.",s)[1]
+  s<-substr(s,1,tmp-1)
+  as.numeric(s)
+}
 
 #function to find the index number for the last activity count
 GetDeathTime<-function(data,times){
