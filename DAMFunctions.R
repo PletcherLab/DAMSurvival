@@ -71,12 +71,31 @@ GetDeathTime<-function(data,times){
   result
 }
 
+
+IsolateLastExperiment<-function(dam){
+  status.runs<-rle(dam$Status)
+  runs.1<-which(status.runs$values==1)
+  last.1.run<-runs.1[length(runs.1)]
+  start.index<-sum(status.runs$lengths[1:last.1.run-1])+1
+  end.index<-sum(status.runs$lengths[1:last.1.run])
+  
+  new.dam<-dam[start.index:end.index,]
+  new.dam
+}
+
+
 GetHoursDeath<-function(dam){
-  
-  dam$CalDateTime <- as.POSIXct (paste(dam$Date, dam$Time), format = "%d-%b-%y %H:%M:%S")
-  
   #Identify start time based on status changing from 51 to 1. Save all 1s as vector RecordingTime. 1st element is StartTime
   dam<-subset(dam,dam$Status==1)
+  
+  
+  
+  
+  dam$CalDateTime <- as.POSIXct (paste(dam$Date, dam$Time), format = "%d %b %y %H:%M:%S")
+
+  if(sum(is.na(dam$CalDateTime))>5)
+    dam$CalDateTime <- as.POSIXct (paste(dam$Date, dam$Time), format = "%d-%b-%y %H:%M:%S") 
+  
   
   #Extract last element from time based on a positive activity value in an activity column
   #First index so that only channel data greater than 0 is included
