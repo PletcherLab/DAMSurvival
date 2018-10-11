@@ -5,7 +5,6 @@ require(survival)
 library(survival)
 
 
-
 #--------------------------------------------------------#
 ## Functions for importing DAM data, adding new columns 
 ## and isolating data of interest.
@@ -145,11 +144,24 @@ GetHoursAtDeathForDAMList <- function(dam.list){
 ### Functions to import  design and sort tubes into treatments.
 #--------------------------------------------------------#
 #function to read in ExpDesign.txt file and assign a treatment group to the trt column of result. 
-GetExpDesign <- function(){
-  expdesign <- read.table("ExpDesign.txt", header = TRUE)
+GetExpDesign <- function(ed){
+  ed <- read.table("ExpDesign.txt", header = TRUE)
+}
+
+AssignTrt <- function(dam){
+  
+  GetExpDesign
+  tmp<-subset(ed,ed$Channel==DAM$DAM & ed$DAM==DAM$Pos, ed$trt)
+  as.character(c(tmp$trt))
+  dam <- rbind(dam, data.frame(trt = tmp$trt))
   
 }
 
+#tmp<-subset(ed,ed$DAM==result)
+#tmp<-merge(result, ed, by="DAM" "channel")
+
+#setDT(results)[trt %chin% ed$DAM]
+#lists
 
 
 #--------------------------------------------------------#
