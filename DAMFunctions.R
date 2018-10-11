@@ -118,7 +118,7 @@ GetHoursatDeathForDAM<-function(dam){
   trt<-rep(NA,32)
   
   result<-data.frame(damnumber,pos,trt,had)
-  names(result)<-c("DAM","Pos","Trt","HrsAtDeath")
+  names(result)<-c("DAM","Channel","Trt","HrsAtDeath")
   result
 }
 
@@ -129,7 +129,7 @@ GetHoursAtDeathForDAMList <- function(dam.list){
     #pull out dataframe with it's name. Pass it to GetHoursDeath. Name comes from dam.files.list[i]
     #deathhours<-lapply(dam[i],GetHoursDeath) 
     deathhours<-GetHoursatDeathForDAM(dam.list[[i]]) 
-    if(exists("results")){
+    if(exists("results",inherits=FALSE)){
       results<-rbind(results,deathhours)
     }
     else {
@@ -144,19 +144,27 @@ GetHoursAtDeathForDAMList <- function(dam.list){
 ### Functions to import  design and sort tubes into treatments.
 #--------------------------------------------------------#
 #function to read in ExpDesign.txt file and assign a treatment group to the trt column of result. 
-GetExpDesign <- function(ed){
+GetExpDesign <- function(){
   ed <- read.table("ExpDesign.txt", header = TRUE)
+  ed
 }
 
-AssignTrt <- function(dam, ed){
-  
-  result <- GetHoursAtDeathForDAMList(dam.list)
-  GetExpDesign(ed)
-  tmp<-subset(ed,ed$Channel==result$DAM & ed$DAM==result$Pos, ed$trt)
-  as.character(c(tmp$trt))
-  dam <- rbind(dam, data.frame(trt = tmp$trt))
+AssignTrt <- function(result, ed){
+  for(i in 1:nrow(result)){
+    result[i,]$Trt<-GetTreatment(ed,result[i,]$DAM,result[i,]$Channel)
+  }
   result
 }
+
+
+GetTreatment<-function(ed,dam,channel){
+  tmp<-subset(ed,ed$Channel==channel & ed$DAM==dam)
+  tmp<-as.character(tmp$Treatment)
+  if(length(tmp)==0)
+    tmp<-"NA"
+  tmp
+}
+
 
 #tmp<-subset(ed,ed$DAM==result)
 #tmp<-merge(result, ed, by="DAM" "channel")
@@ -170,12 +178,11 @@ AssignTrt <- function(dam, ed){
 #--------------------------------------------------------#
 #Survival plotting code
 SurvPlots <- function(result){
-  surv.object<-Surv(result$Death,rep(1,length(result$Death)))
+  surv.object<-Surv(result$HrsAtDeath,rep(1,length(result$HrsAtDeath)))
   SurvCurve <- survfit(surv.object~result$Trt)
   SurvComp <- survdiff(surv.object~result$Trt)
   plot(SurvCurve, col=c(3,4))
   print(SurvComp)
-  plot(SurvComp)
 }
 
 

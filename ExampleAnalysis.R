@@ -2,4 +2,7 @@
 rm(list=ls())
 source("DAMFunctions.R")
 dam.list<-ImportDAMData()
-results<-GetHoursAtDeathForDAMList(dam.list)
+result<-GetHoursAtDeathForDAMList(dam.list)
+ed<-GetExpDesign()
+new.result<-AssignTrt(result,ed)
+SurvPlots(new.result)
