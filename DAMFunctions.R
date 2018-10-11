@@ -148,13 +148,14 @@ GetExpDesign <- function(ed){
   ed <- read.table("ExpDesign.txt", header = TRUE)
 }
 
-AssignTrt <- function(dam){
+AssignTrt <- function(dam, ed){
   
-  GetExpDesign
-  tmp<-subset(ed,ed$Channel==DAM$DAM & ed$DAM==DAM$Pos, ed$trt)
+  result <- GetHoursAtDeathForDAMList(dam.list)
+  GetExpDesign(ed)
+  tmp<-subset(ed,ed$Channel==result$DAM & ed$DAM==result$Pos, ed$trt)
   as.character(c(tmp$trt))
   dam <- rbind(dam, data.frame(trt = tmp$trt))
-  
+  result
 }
 
 #tmp<-subset(ed,ed$DAM==result)
