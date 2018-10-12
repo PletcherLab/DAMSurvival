@@ -115,9 +115,9 @@ GetHoursatDeathForDAM<-function(dam){
   had<-GetHoursAtDeathVector(dam)
   damnumber<-rep(dam$Number,32)
   pos<-1:32
-  trt<-rep(NA,32)
+  Trt<-rep(NA,32)
   
-  result<-data.frame(damnumber,pos,trt,had)
+  result<-data.frame(damnumber,pos,Trt,had)
   names(result)<-c("DAM","Channel","Trt","HrsAtDeath")
   result
 }
@@ -145,7 +145,7 @@ GetHoursAtDeathForDAMList <- function(dam.list){
 #--------------------------------------------------------#
 #function to read in ExpDesign.txt file and assign a treatment group to the trt column of result. 
 GetExpDesign <- function(){
-  ed <- read.table("ExpDesign.txt", header = TRUE)
+  ed <- read.csv("ExpDesign.csv", row.names=NULL)
   ed
 }
 
@@ -159,18 +159,11 @@ AssignTrt <- function(result, ed){
 
 GetTreatment<-function(ed,dam,channel){
   tmp<-subset(ed,ed$Channel==channel & ed$DAM==dam)
-  tmp<-as.character(tmp$Treatment)
+  tmp<-as.character(tmp$Trt)
   if(length(tmp)==0)
     tmp<-"NA"
   tmp
 }
-
-
-#tmp<-subset(ed,ed$DAM==result)
-#tmp<-merge(result, ed, by="DAM" "channel")
-
-#setDT(results)[trt %chin% ed$DAM]
-#lists
 
 
 #--------------------------------------------------------#
