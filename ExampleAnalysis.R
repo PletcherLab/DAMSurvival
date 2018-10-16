@@ -6,3 +6,15 @@ result<-GetHoursAtDeathForDAMList(dam.list)
 ed<-GetExpDesign()
 new.result<-AssignTrt(result,ed)
 SurvPlots(new.result)
+
+
+
+
+
+
+
+
+
+
+
+

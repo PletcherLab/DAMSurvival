@@ -171,15 +171,24 @@ GetTreatment<-function(ed,dam,channel){
 #--------------------------------------------------------#
 #Survival plotting code
 SurvPlots <- function(result){
+  individual.trt <- DetermineTreatments(result)
   surv.object<-Surv(result$HrsAtDeath,rep(1,length(result$HrsAtDeath)))
   SurvCurve <- survfit(surv.object~result$Trt)
   SurvComp <- survdiff(surv.object~result$Trt)
-  plot(SurvCurve, col=c(3,4))
+  plot(SurvCurve, col=1:length(individual.trt), lty = 1)
+  print(individual.trt)
+  legend("bottomleft",  legend = individual.trt, col = 1:length(individual.trt), lty = 1)
   print(SurvComp)
 }
 
-
-
+#function to determine the treatments included in the analysis. Sorts alphabetically. 
+DetermineTreatments  <- function(new.result){
+  treatments <- new.result$Trt
+  individual.trt <- unique(treatments)
+  as.character(individual.trt)
+  sort(individual.trt)
+  individual.trt
+}
 
 
 
