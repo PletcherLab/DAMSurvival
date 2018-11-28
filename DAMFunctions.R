@@ -110,12 +110,15 @@ GetHoursAtDeathVector<-function(dam){
 }
 GetHoursatDeathForDAM<-function(dam){
   had<-GetHoursAtDeathVector(dam)
+  lastMeasure<-dam$Data$ElapsedHours[nrow(dam$Data)]
+  status<-rep(1,length(had))
+  status[had==lastMeasure]<-0
   damnumber<-rep(dam$Number,32)
   pos<-1:32
   Trt<-rep(NA,32)
   
-  result<-data.frame(damnumber,pos,Trt,had)
-  names(result)<-c("DAM","Channel","Trt","HrsAtDeath")
+  result<-data.frame(damnumber,pos,Trt,had,status)
+  names(result)<-c("DAM","Channel","Trt","HrsAtDeath","Status")
   result
 }
 
@@ -169,30 +172,7 @@ GetTreatment<-function(ed,dam,channel){
 #--------------------------------------------------------#
 #Survival plotting code
 SurvPlots <- function(result){
-  individual.trt <- DetermineTreatments(result)
-  surv.object<-Surv(result$HrsAtDeath,rep(1,length(result$HrsAtDeath)))
-<<<<<<< Updated upstream
-  SurvCurve <- survfit(surv.object~result$Trt)
-  SurvComp <- survdiff(surv.object~result$Trt)
-  plot(SurvCurve, col=c(4,4,2,2,3,3), lty = c(1,2,1,2,1,2))
-  print(individual.trt)
-  legend("bottomleft",  legend = individual.trt, col=c(4,4,2,2,3,3), lty = c(1,2,1,2,1,2))
-  print(SurvComp)
-}
-
-#function to determine the treatments included in the analysis. Sorts alphabetically. 
-DetermineTreatments  <- function(new.result){
-  treatments <- new.result$Trt
-  tmp.trt <- unique(treatments)
-  as.character(tmp.trt)
-  individual.trt <- sort(tmp.trt)
-  individual.trt
-}
-
-
-
-
-=======
+  surv.object<-Surv(result$HrsAtDeath,result$Status)
   SurvCurve <- survfit(surv.object~Trt,data=result)
   SurvComp <- survdiff(surv.object~Trt,data=result)
   lLab <- gsub("Trt=","",names(SurvCurve$strata))
@@ -209,7 +189,6 @@ DoItAll<-function(){
   results<-AssignTrt(results,ed)
   SurvPlots(results)
 }
->>>>>>> Stashed changes
 
 
 
