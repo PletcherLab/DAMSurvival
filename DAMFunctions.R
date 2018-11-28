@@ -40,9 +40,17 @@ GetDAMFile <- function(z) {
   dam<-as.data.frame(dam)
   dam<-IsolateLastExperiment(dam)
   dam<-AddCalcDateTime(dam)
+  dam<-AddElapsedHours(dam)
+  
   
   monitor.number<-GetMonitorNumberFromFileName(z)
   dam<-list(Number=monitor.number,Data=dam)
+  dam
+}
+
+AddElapsedHours<-function(dam){
+  ElapsedHours<-difftime(dam$CalDateTime, dam$CalDateTime[1],units="hours")
+  dam$ElapsedHours<-ElapsedHours
   dam
 }
 
@@ -97,19 +105,8 @@ GetHoursAtDeathVector<-function(dam){
   dam.data<-dam$Data
   #Extract last element from time based on a positive activity value in an activity column
   #First index so that only channel data greater than 0 is included
-  death.times<-(lapply( dam.data[,11:42],GetSingleDeathTime, dam.data$CalDateTime))
-  
-  tmp<-rep(-1,32)
-  for(i in 1:32){
-    if(is.na(tmp[i])){
-      tmp[i]<-NA
-    }
-    else {
-      tmp[i]<-difftime(death.times[[i]], dam.data$CalDateTime[1],units="hours")
-    }
-  }
-  hours.at.death<-tmp
-  hours.at.death
+  hours.at.death<-(lapply( dam.data[,11:42],GetSingleDeathTime, dam.data$ElapsedHours))
+  unlist(hours.at.death)
 }
 GetHoursatDeathForDAM<-function(dam){
   had<-GetHoursAtDeathVector(dam)
@@ -136,6 +133,7 @@ GetHoursAtDeathForDAMList <- function(dam.list){
       results<-deathhours
     }
   }
+  row.names(results)<-1:nrow(results)
   results
 }
 
@@ -173,6 +171,7 @@ GetTreatment<-function(ed,dam,channel){
 SurvPlots <- function(result){
   individual.trt <- DetermineTreatments(result)
   surv.object<-Surv(result$HrsAtDeath,rep(1,length(result$HrsAtDeath)))
+<<<<<<< Updated upstream
   SurvCurve <- survfit(surv.object~result$Trt)
   SurvComp <- survdiff(surv.object~result$Trt)
   plot(SurvCurve, col=c(4,4,2,2,3,3), lty = c(1,2,1,2,1,2))
@@ -193,6 +192,24 @@ DetermineTreatments  <- function(new.result){
 
 
 
+=======
+  SurvCurve <- survfit(surv.object~Trt,data=result)
+  SurvComp <- survdiff(surv.object~Trt,data=result)
+  lLab <- gsub("Trt=","",names(SurvCurve$strata))
+  plot(SurvCurve, col=1:length(lLab), lty = c(1,1))
+  legend("bottomleft",legend = lLab,  col=1:length(lLab), lty = c(1,1),cex = 1)
+  print(SurvComp)
+}
+
+
+DoItAll<-function(){
+  data<-ImportDAMData()
+  ed<-GetExpDesign()
+  results<-GetHoursAtDeathForDAMList(data)
+  results<-AssignTrt(results,ed)
+  SurvPlots(results)
+}
+>>>>>>> Stashed changes
 
 
 
