@@ -184,10 +184,10 @@ SurvPlots <- function(result){
 
 
 DoItAll<-function(){
-  data<-ImportDAMData()
-  ed<-GetExpDesign()
-  results<-GetHoursAtDeathForDAMList(data)
-  results<-AssignTrt(results,ed)
+  dam.list<-ImportDAMData()
+  exp.design<-ImportExpDesign()
+  results<-ComputeStarvationResults(dam.list,exp.design)
+  plot.counts.dam.list(dam.list,results)
   SurvPlots(results)
 }
 
