@@ -1,6 +1,4 @@
 ## SurvivalDAMFunctions
-require(data.table)
-library(data.table)
 require(survival)
 library(survival)
 
@@ -28,7 +26,7 @@ ImportDAMData <- function(){
 }
 
 GetDAMFile <- function(z) {
-  dam <- fread(z, stringsAsFactors = FALSE)
+  dam<-read.table(z,sep="\t")
   colnames(dam) <- c("Num",	"Date",	"Time",	"Status",	"Blank1",	"Blank2",	"Blank3",	"Blank4",	"Blank5",	
                      "Light",	"Channel1",	"Channel2",	"Channel3",	"Channel4",	"Channel5",	"Channel6",	"Channel7",	"Channel8",
                      "Channel9",	"Channel10",	"Channel11",	"Channel12",	"Channel13",	"Channel14",	"Channel15",	
@@ -36,8 +34,6 @@ GetDAMFile <- function(z) {
                      "Channel23",	"Channel24",	"Channel25",	"Channel26",	"Channel27",	"Channel28",	"Channel29",	
                      "Channel30",	"Channel31",	"Channel32")
   
-  
-  dam<-as.data.frame(dam)
   dam<-IsolateLastExperiment(dam)
   dam<-AddCalcDateTime(dam)
   dam<-AddElapsedHours(dam)
