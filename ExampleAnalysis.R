@@ -2,9 +2,14 @@
 rm(list=ls())
 source("DAMFunctions.R")
 dam.list<-ImportDAMData()
-result<-GetHoursAtDeathForDAMList(dam.list)
-ed<-GetExpDesign()
-new.result<-AssignTrt(result,ed)
+exp.design<-ImportExpDesign()
+results<-ComputeStarvationResults(dam.list,exp.design)
+
+## Check that the data look good!
+
+
+
+
 SurvPlots(new.result)
 
 

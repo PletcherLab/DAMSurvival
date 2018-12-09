@@ -1,3 +1,7 @@
+# My data files
+Monitor*.txt
+.pdf
+
 # History files
 .Rhistory
 .Rapp.history

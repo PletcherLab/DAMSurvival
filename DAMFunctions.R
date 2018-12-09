@@ -46,7 +46,7 @@ GetDAMFile <- function(z) {
 
 AddElapsedHours<-function(dam){
   ElapsedHours<-difftime(dam$CalDateTime, dam$CalDateTime[1],units="hours")
-  dam$ElapsedHours<-ElapsedHours
+  dam$ElapsedHours<-as.numeric(ElapsedHours)
   dam
 }
 
@@ -137,11 +137,17 @@ GetHoursAtDeathForDAMList <- function(dam.list){
 }
 
 
+ComputeStarvationResults<-function(dam.list,expDesign){
+  tmp<-GetHoursAtDeathForDAMList(dam.list)
+  tmp2<-AssignTrt(tmp,expDesign)
+  tmp2
+}
+
 #--------------------------------------------------------#
 ### Functions to import  design and sort tubes into treatments.
 #--------------------------------------------------------#
 #function to read in ExpDesign.txt file and assign a treatment group to the trt column of result. 
-GetExpDesign <- function(){
+ImportExpDesign <- function(){
   ed <- read.csv("ExpDesign.csv", row.names=NULL)
   ed
 }
@@ -152,7 +158,6 @@ AssignTrt <- function(result, ed){
   }
   result
 }
-
 
 GetTreatment<-function(ed,dam,channel){
   tmp<-subset(ed,ed$Channel==channel & ed$DAM==dam)
@@ -186,8 +191,116 @@ DoItAll<-function(){
   SurvPlots(results)
 }
 
+#--------------------------------------------------------#
+### Functions for plotting.
+#--------------------------------------------------------#
 
+# Multiple plot function
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
 
+plot.counts.channel<-function(dam,channel,dam.number=0, result.vector=NULL){
+  elapsedhours<-dam$ElapsedHours
+  tmp<-paste("Channel",channel,sep="")
+  channel.data<-dam[,tmp]
+  if(dam.number>0)
+    ttl<-paste("DAM: ",dam.number," - Channel: ",channel, sep="")
+  else
+    ttl<-paste("Channel: ",channel, sep="")
+  p<-ggplot(data=dam,aes(x=elapsedhours,y=channel.data)) + geom_point(size=1) + ggtitle(ttl) +xlab("Hours") + ylab("Counts")
+  if(!is.null(result.vector)) {
+    tmp.y<-channel.data[elapsedhours==result.vector$HrsAtDeath]
+    if(result.vector$Status==1)
+      colorstring="red"
+    else
+      colorstring="green"
+    p<- p + geom_point(aes(x=result.vector$HrsAtDeath, y=tmp.y), colour=colorstring, size=2)
+  }
+  p
+}
 
+plot.counts.dam<-function(dam, results.frame,save.to.file=TRUE){
+  dam.number<-dam$Number
+  dam<-dam$Data
+  results<-subset(results.frame,results.frame$DAM==dam.number)
+  if(save.to.file==TRUE){
+    tmp<-paste("DAM",dam.number,"_Counts.pdf");
+    pdf(tmp,paper="USr")
+  }
+  plot.list<-list()
+  for(i in 1:4){
+    result.vector<-results[results$Channel==i,]
+    plot.list[[i]]<-plot.counts.channel(dam,i,dam.number,result.vector)
+  }
+  multiplot(plotlist=plot.list,cols=2)
+  plot.list<-list()
+  for(i in 5:8){
+    result.vector<-results[results$Channel==i,]
+    plot.list[[i-4]]<-plot.counts.channel(dam,i,dam.number,result.vector)
+  }
+  multiplot(plotlist=plot.list,cols=2)
+  plot.list<-list()
+  for(i in 9:12){
+    result.vector<-results[results$Channel==i,]
+    plot.list[[i-8]]<-plot.counts.channel(dam,i,dam.number,result.vector)
+  }
+  multiplot(plotlist=plot.list,cols=2)
+  plot.list<-list()
+  for(i in 13:16){
+    result.vector<-results[results$Channel==i,]
+    plot.list[[i-12]]<-plot.counts.channel(dam,i,dam.number,result.vector)
+  }
+  multiplot(plotlist=plot.list,cols=2)
+  if(save.to.file==TRUE)
+    graphics.off()
+}
 
-
+plot.counts.dam.list<-function(dam.list,results,save.to.file=TRUE){
+  for(i in 1:length(dam.list)){
+    tmp<-paste("Plotting ",i," of ", length(dam.list),".",sep="")
+    print(tmp)
+    plot.counts.dam(dam.list[[i]],results,save.to.file)
+  }
+}
