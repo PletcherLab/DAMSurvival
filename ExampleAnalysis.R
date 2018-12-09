@@ -6,12 +6,12 @@ exp.design<-ImportExpDesign()
 results<-ComputeStarvationResults(dam.list,exp.design)
 plot.counts.dam.list(dam.list,results)
 
-## Check that the data look good!
+## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+## Make sure to check each plot to ensure the
+## calculations are working for your data!!!!
+## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
-
-
-SurvPlots(new.result)
+SurvPlots(results)
 
 
 

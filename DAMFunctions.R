@@ -1,7 +1,6 @@
 ## SurvivalDAMFunctions
 require(survival)
-library(survival)
-
+require(zoo)
 
 #--------------------------------------------------------#
 ## Functions for importing DAM data, adding new columns 
@@ -85,7 +84,33 @@ GetMonitorNumberFromFileName<-function(s){
 #--------------------------------------------------------#
 
 #function to find the index number for the last activity count
-GetSingleDeathTime<-function(data,times){
+GetSingleDeathTime<-function(data,times,window.hours=6,threshold=3){
+  window.size<-window.hours/(times[2]-times[1])
+  data.binary<-data>0
+  if(sum(data.binary)==0){
+    result<-(-1) ## -1 means that is was never alive.
+  }
+  else {
+    tmp<-rollapply(data.binary,window.size,sum,partial=TRUE)
+    tmp.2<-tmp>threshold
+    if(sum(tmp.2)==0)
+      result<-(-1) ## again considered not alive
+    else {
+      if(tmp.2[length(tmp.2)]==TRUE)
+        result<-(-2) # Censored
+      else {
+        ## Choose the last time that actual counts were > 0 for the official death time
+        result<-times[tmp.2 & data.binary]
+        if(length(result)==0)
+          result=-3 ## Something
+        result<-result[length(result)]
+      }
+    }
+  }
+  result
+}
+
+GetSingleDeathTime.V1<-function(data,times){
   tmp<-which(data>0)
   if(length(tmp)==0){
     result<-NA
@@ -108,7 +133,10 @@ GetHoursatDeathForDAM<-function(dam){
   had<-GetHoursAtDeathVector(dam)
   lastMeasure<-dam$Data$ElapsedHours[nrow(dam$Data)]
   status<-rep(1,length(had))
-  status[had==lastMeasure]<-0
+  status[had==-2]<-0
+  had[had==-2]<-lastMeasure
+  had[had==-1]<-NA
+  had[had==-3]<-NA
   damnumber<-rep(dam$Number,32)
   pos<-1:32
   Trt<-rep(NA,32)
@@ -250,7 +278,7 @@ plot.counts.channel<-function(dam,channel,dam.number=0, result.vector=NULL){
   else
     ttl<-paste("Channel: ",channel, sep="")
   p<-ggplot(data=dam,aes(x=elapsedhours,y=channel.data)) + geom_point(size=1) + ggtitle(ttl) +xlab("Hours") + ylab("Counts")
-  if(!is.null(result.vector)) {
+  if(!is.null(result.vector) && !is.na(result.vector$HrsAtDeath)) {
     tmp.y<-channel.data[elapsedhours==result.vector$HrsAtDeath]
     if(result.vector$Status==1)
       colorstring="red"
@@ -274,7 +302,7 @@ plot.counts.dam<-function(dam, results.frame){
     unlink(tmp.dir,recursive=TRUE)
   dir.create(tmp.dir)
   fn<-paste("Plots\\DAM_",dam.number,"\\",sep="")
-  for(i in 1:16){
+  for(i in 1:32){
     fn.long<-paste(fn,"Channel_",i,".png",sep="")
     png(fn.long,width=960,height=480)
     result.vector<-results[results$Channel==i,]
