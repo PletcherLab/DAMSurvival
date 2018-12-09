@@ -261,46 +261,33 @@ plot.counts.channel<-function(dam,channel,dam.number=0, result.vector=NULL){
   p
 }
 
-plot.counts.dam<-function(dam, results.frame,save.to.file=TRUE){
+plot.counts.dam<-function(dam, results.frame){
   dam.number<-dam$Number
   dam<-dam$Data
   results<-subset(results.frame,results.frame$DAM==dam.number)
-  if(save.to.file==TRUE){
-    tmp<-paste("DAM",dam.number,"_Counts.pdf");
-    pdf(tmp,paper="USr")
-  }
+ 
   plot.list<-list()
-  for(i in 1:4){
+  if(!dir.exists("Plots"))
+    dir.create("Plots")
+  tmp.dir<-paste(paste("Plots\\DAM_",dam.number,sep=""))
+  if(dir.exists(tmp.dir))
+    unlink(tmp.dir,recursive=TRUE)
+  dir.create(tmp.dir)
+  fn<-paste("Plots\\DAM_",dam.number,"\\",sep="")
+  for(i in 1:16){
+    fn.long<-paste(fn,"Channel_",i,".png",sep="")
+    png(fn.long,width=960,height=480)
     result.vector<-results[results$Channel==i,]
-    plot.list[[i]]<-plot.counts.channel(dam,i,dam.number,result.vector)
+    p<-plot.counts.channel(dam,i,dam.number,result.vector)
+    plot(p)
+    graphics.off() 
   }
-  multiplot(plotlist=plot.list,cols=2)
-  plot.list<-list()
-  for(i in 5:8){
-    result.vector<-results[results$Channel==i,]
-    plot.list[[i-4]]<-plot.counts.channel(dam,i,dam.number,result.vector)
-  }
-  multiplot(plotlist=plot.list,cols=2)
-  plot.list<-list()
-  for(i in 9:12){
-    result.vector<-results[results$Channel==i,]
-    plot.list[[i-8]]<-plot.counts.channel(dam,i,dam.number,result.vector)
-  }
-  multiplot(plotlist=plot.list,cols=2)
-  plot.list<-list()
-  for(i in 13:16){
-    result.vector<-results[results$Channel==i,]
-    plot.list[[i-12]]<-plot.counts.channel(dam,i,dam.number,result.vector)
-  }
-  multiplot(plotlist=plot.list,cols=2)
-  if(save.to.file==TRUE)
-    graphics.off()
 }
 
-plot.counts.dam.list<-function(dam.list,results,save.to.file=TRUE){
+plot.counts.dam.list<-function(dam.list,results){
   for(i in 1:length(dam.list)){
     tmp<-paste("Plotting ",i," of ", length(dam.list),".",sep="")
     print(tmp)
-    plot.counts.dam(dam.list[[i]],results,save.to.file)
+    plot.counts.dam(dam.list[[i]],results)
   }
 }
