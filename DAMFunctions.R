@@ -1,6 +1,7 @@
 ## SurvivalDAMFunctions
 require(survival)
 require(zoo)
+require(ggplot2)
 
 #--------------------------------------------------------#
 ## Functions for importing DAM data, adding new columns 
