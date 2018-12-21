@@ -13,8 +13,29 @@ plot.counts.dam.list(dam.list,results)
 
 SurvPlots(results)
 
+## If you want to limit the output to include only
+## a subset of treatments, create a string vector
+## (case-sensive) and pass it to the function.
 
+trt<-c("TrtA","TrtB")
+SurvPlots(results, trt.list=trt)
 
+## To see some fancy plots and output them to a file
+SurvPlotsFancy(results) ## Saves to SurvPlot.png
+## or 
+SurvPlotsFancy(results,filename="MySurveCurves.png")
+## Set conf.int=FALSE if you don't want the shaded regions
+SurvPlotsFancy(results,conf.int=FALSE) 
+
+## You can also filter by treatments
+trt<-c("TrtA","TrtB")
+SurvPlotsFancy(results,trt.list=trt,conf.int=FALSE) 
+
+## To output the survival values at event times
+## so that you can plot using your own software.
+OutputSurvData(results)  ## Saves to SurvData.csv
+## or
+OutputSurvData(results,filename="MyResults.csv")  
 
 
 

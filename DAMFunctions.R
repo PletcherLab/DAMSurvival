@@ -2,6 +2,7 @@
 require(survival)
 require(zoo)
 require(ggplot2)
+require(survminer)
 
 #--------------------------------------------------------#
 ## Functions for importing DAM data, adding new columns 
@@ -201,15 +202,62 @@ GetTreatment<-function(ed,dam,channel){
 ### Functions for survival analysis.
 #--------------------------------------------------------#
 #Survival plotting code
-SurvPlots <- function(result){
+SurvPlots <- function(results,trt.list=NA, filename="SurvPlot.png"){
+  if(sum(is.na(trt.list))==0){
+    result<-results[results$Trt %in% trt.list,]  
+    
+  }
+  else {
+    result<-results
+  }
   surv.object<-Surv(result$HrsAtDeath,result$Status)
   SurvCurve <- survfit(surv.object~Trt,data=result)
   SurvComp <- survdiff(surv.object~Trt,data=result)
   lLab <- gsub("Trt=","",names(SurvCurve$strata))
+  png(filename)
+  plot(SurvCurve, col=1:length(lLab), lty = c(1,1))
+  legend("bottomleft",legend = lLab,  col=1:length(lLab), lty = c(1,1),cex = 1)
+  dev.off()
   plot(SurvCurve, col=1:length(lLab), lty = c(1,1))
   legend("bottomleft",legend = lLab,  col=1:length(lLab), lty = c(1,1),cex = 1)
   print(SurvComp)
 }
+
+
+SurvPlotsFancy <- function(results,trt.list=NA,conf.int=TRUE,filename="SurvPlot.png"){
+  if(sum(is.na(trt.list))==0){
+    result<-results[results$Trt %in% trt.list,]  
+    
+  }
+  else {
+    result<-results
+  }
+  surv.object<-Surv(result$HrsAtDeath,result$Status)
+  SurvCurve <- survfit(surv.object~Trt,data=result)
+  SurvComp <- survdiff(surv.object~Trt,data=result)
+  p<-ggsurvplot(
+    SurvCurve,                     # survfit object with calculated statistics.
+    risk.table = TRUE,       # show risk table.
+    pval = TRUE,             # show p-value of log-rank test.
+    conf.int = conf.int,         # show confidence intervals for 
+    ncensor.plot=TRUE,
+    tables.y.text.col=TRUE,
+    # point estimaes of survival curves.
+    #xlim = c(0,400),        # present narrower X axis, but not affect
+    # survival estimates.
+    break.time.by = 10,     # break X axis in time intervals by 500.
+    ggtheme = theme_minimal(), # customize plot and risk table with a theme.
+    risk.table.y.text.col = T, # colour risk table text annotations.
+    risk.table.y.text = FALSE # show bars instead of names in text annotations
+    # in legend of risk table
+  )
+  print(SurvComp)
+  png(filename)
+  print(p, newpage = FALSE)
+  dev.off()
+  p
+}
+
 
 
 DoItAll<-function(){
@@ -218,6 +266,15 @@ DoItAll<-function(){
   results<-ComputeStarvationResults(dam.list,exp.design)
   plot.counts.dam.list(dam.list,results)
   SurvPlots(results)
+}
+
+
+OutputSurvData<-function(result,filename="SurvData.csv"){
+  surv.object<-Surv(result$HrsAtDeath,result$Status)
+  SurvCurve <- survfit(surv.object~Trt,data=result)
+  res <- summary(SurvCurve)
+  save.df <- as.data.frame(res[c("strata", "time", "n.risk", "n.event", "surv", "std.err", "lower", "upper")])
+  write.csv(save.df, file = filename,row.names=FALSE)
 }
 
 #--------------------------------------------------------#
