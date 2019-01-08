@@ -41,7 +41,9 @@ TrimDAMData<-function(dam){
   minidata<-dam$Data[,11:42]
   tmp<-apply(minidata,1,sum)
   tmp2<-tail(which(tmp!=0),1)
-  dam$Data<-dam$Data[1:tmp2,]
+  tmp2<-tmp2+30 ## Add 30min of presumably death time for safe measure
+  if(tmp2<nrow(dam$Data)) ## Only trim if needed.
+    dam$Data<-dam$Data[1:tmp2,]
   dam
 }
 
