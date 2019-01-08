@@ -22,10 +22,27 @@ ImportDAMData <- function(){
   dam.files.list <- gsub(pattern, replacement,  dam.files.list)
   names(dam)<-dam.files.list
   
+  dam<-Trim.DAMList(dam)
+  
   dam.list.summary(dam)
   
   dam
   #perhaps it's best to leave the dataframes as part of the list then I can pass the list to the next function. 
+}
+
+Trim.DAMList<-function(dam.list){
+  for(i in 1:length(dam.list)){
+   dam.list[[i]]<-TrimDAMData(dam.list[[i]]) 
+  }
+  dam.list
+}
+
+TrimDAMData<-function(dam){
+  minidata<-dam$Data[,11:42]
+  tmp<-apply(minidata,1,sum)
+  tmp2<-tail(which(tmp!=0),1)
+  dam$Data<-dam$Data[1:tmp2,]
+  dam
 }
 
 GetDAMFile <- function(z) {
