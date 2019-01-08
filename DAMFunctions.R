@@ -22,6 +22,8 @@ ImportDAMData <- function(){
   dam.files.list <- gsub(pattern, replacement,  dam.files.list)
   names(dam)<-dam.files.list
   
+  dam.list.summary(dam)
+  
   dam
   #perhaps it's best to leave the dataframes as part of the list then I can pass the list to the next function. 
 }
@@ -79,6 +81,30 @@ GetMonitorNumberFromFileName<-function(s){
   s<-substr(s,1,tmp-1)
   as.numeric(s)
 }
+
+
+dam.list.summary<-function(dam.list){
+  for(i in 1:length(dam.list)){
+    dam<-dam.list[[i]]
+    cat(paste("****** DAM ",dam$Number," *****)\n",sep=""))
+    dam.summary(dam)
+    cat(paste("*******************\n\n\n"))
+  }
+}
+
+
+dam.summary<-function(dam){
+  tmp<-paste(" Start time: ",dam$Data$CalDateTime[1], sep="")
+  print(tmp)
+  tmp<-paste("   End time: ",dam$Data$CalDateTime[nrow(dam$Data)], sep="")
+  print(tmp)
+  tmp<-paste("Elapsed(hr): ",dam$Data$ElapsedHours[nrow(dam$Data)], sep="")
+  print(tmp)
+  tmp2<-sum(dam$Data$Status!=1)
+  tmp<-paste(" Bad Status: ",tmp2, sep="")
+  print(tmp)
+}
+
 
 
 #--------------------------------------------------------#
