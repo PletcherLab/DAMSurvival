@@ -1,6 +1,7 @@
 # My data files
 Monitor*.txt
 .pdf
+.png
 /Plots
 
 # History files
