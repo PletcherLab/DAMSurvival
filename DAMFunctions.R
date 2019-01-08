@@ -272,7 +272,6 @@ SurvPlots <- function(results,trt.list=NA, filename="SurvPlot.png"){
 SurvPlotsFancy <- function(results,trt.list=NA,conf.int=TRUE,filename="SurvPlot.png"){
   if(sum(is.na(trt.list))==0){
     result<-results[results$Trt %in% trt.list,]  
-    
   }
   else {
     result<-results
