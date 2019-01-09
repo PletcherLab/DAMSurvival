@@ -399,11 +399,11 @@ plot.counts.dam<-function(dam, results.frame){
   plot.list<-list()
   if(!dir.exists("Plots"))
     dir.create("Plots")
-  tmp.dir<-paste(paste("Plots\\DAM_",dam.number,sep=""))
+  tmp.dir<-paste(paste("Plots/DAM_",dam.number,sep=""))
   if(dir.exists(tmp.dir))
     unlink(tmp.dir,recursive=TRUE)
   dir.create(tmp.dir)
-  fn<-paste("Plots\\DAM_",dam.number,"\\",sep="")
+  fn<-paste("Plots/DAM_",dam.number,"/",sep="")
   for(i in 1:32){
     fn.long<-paste(fn,"Channel_",i,".png",sep="")
     png(fn.long,width=960,height=480)
