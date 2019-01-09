@@ -276,9 +276,11 @@ SurvPlotsFancy <- function(results,trt.list=NA,conf.int=TRUE,filename="SurvPlot.
   else {
     result<-results
   }
+  
   surv.object<-Surv(result$HrsAtDeath,result$Status)
-  SurvCurve <- survfit(surv.object~Trt,data=result)
+  SurvCurve <- survfit(Surv(HrsAtDeath,Status)~Trt,data=result)
   SurvComp <- survdiff(surv.object~Trt,data=result)
+  
   p<-ggsurvplot(
     SurvCurve,                     # survfit object with calculated statistics.
     risk.table = TRUE,       # show risk table.
@@ -292,9 +294,11 @@ SurvPlotsFancy <- function(results,trt.list=NA,conf.int=TRUE,filename="SurvPlot.
     break.time.by = 10,     # break X axis in time intervals by 500.
     ggtheme = theme_minimal(), # customize plot and risk table with a theme.
     risk.table.y.text.col = T, # colour risk table text annotations.
-    risk.table.y.text = FALSE # show bars instead of names in text annotations
+    risk.table.y.text = FALSE, # show bars instead of names in text annotations
     # in legend of risk table
+    data=result
   )
+  print("here")
   print(SurvComp)
   png(filename)
   print(p, newpage = FALSE)
