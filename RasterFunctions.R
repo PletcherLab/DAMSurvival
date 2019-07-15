@@ -83,13 +83,15 @@ GetRasterProcessedData.DAMList<-function(dam.list,starvation.results,exp.design,
 AddYCoords<-function(melted.data){
   tmp<-aggregate(melted.data$ElapsedHours,by=list(Channel=melted.data$Channel, DAM=melted.data$DAM),max)
   ycoords<-rank(-1*tmp$x,ties.method = "first")
-  from.to<-data.frame(tmp$Channel,ycoords)
-  names(from.to)<-c("Channel","Y")
+  from.to<-data.frame(tmp$DAM,tmp$Channel,ycoords)
+  names(from.to)<-c("DAM","Channel","Y")
   Y<-rep(NA,nrow(melted.data))
   for(i in 1:nrow(melted.data)){
     ch<-melted.data$Channel[i]
-    if(sum(from.to$Channel==ch)>0)
-      Y[i]<-from.to[from.to$Channel==ch,2]
+    dm<-melted.data$DAM[i]
+    index<-from.to$Channel==ch & from.to$DAM==dm
+    if(sum(index)>0)
+      Y[i]<-from.to[index,3]
     else
       Y[i]<-NA
   }
@@ -110,6 +112,7 @@ MakeRasterPlots<-function(processedData){
     
   }
   multiplot(plotlist=glist,cols=2)
+  glist
 }
 
 
@@ -119,4 +122,5 @@ dam.list<-ImportDAMData()
 exp.design<-ImportExpDesign()
 starvation.results<-ComputeStarvationResults(dam.list,exp.design)
 processedData<-GetRasterProcessedData.DAMList(dam.list,starvation.results,exp.design,30)
-MakeRasterPlots(processedData)
+SurvPlots(starvation.results)
+gps<-MakeRasterPlots(processedData)
