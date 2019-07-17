@@ -1,5 +1,4 @@
 require(reshape2)
-rm(list=ls())
 
 
 BinActivityData.DataFrame<-function(damForMelt,binsize.min){
@@ -99,14 +98,21 @@ AddYCoords<-function(melted.data){
   results
 }
 
-MakeRasterPlots<-function(processedData){
+MakeRasterPlots<-function(processedData,x.limits=NA){
   levels<-unique(processedData$Trt)
-  max.count<-max(processedData$Counts)
+  max.count<-quantile(processedData$Counts,0.99)
   glist<-list()
   for(i in levels){
     tmp<-subset(processedData,Trt==i)
     tmp<-AddYCoords(tmp)
-    p<-ggplot(tmp,aes(ElapsedHours,Y,width=0.5)) +geom_tile(aes(fill=Counts))+ scale_fill_gradientn(colors=c("blue","red"), limits=c(0,max.count)) + ylab("Fly") + ggtitle(paste("TRT:",i))
+    if(is.na(x.limits)){
+      p<-ggplot(tmp,aes(ElapsedHours,Y,width=0.5)) +geom_tile(aes(fill=Counts))+ scale_fill_viridis(limits=c(0,max.count))+ ylab("Fly") + ggtitle(paste("TRT:",i))
+    }
+    else {
+      p<-ggplot(tmp,aes(ElapsedHours,Y,width=0.5)) +geom_tile(aes(fill=Counts))+ scale_fill_viridis(limits=c(0,max.count))+ ylab("Fly") + ggtitle(paste("TRT:",i)) +
+        xlim(x.limits[1],x.limits[2])  
+    }
+    
     tt<-paste("Name",i,sep="")
     glist[[tt]]<-p
     
@@ -114,13 +120,3 @@ MakeRasterPlots<-function(processedData){
   multiplot(plotlist=glist,cols=2)
   glist
 }
-
-
-
-source("DAMFunctions.R")
-dam.list<-ImportDAMData()
-exp.design<-ImportExpDesign()
-starvation.results<-ComputeStarvationResults(dam.list,exp.design)
-processedData<-GetRasterProcessedData.DAMList(dam.list,starvation.results,exp.design,30)
-SurvPlots(starvation.results)
-gps<-MakeRasterPlots(processedData)

@@ -39,9 +39,15 @@ OutputSurvData(results,filename="MyResults.csv")
 
 
 
+## Do you want to see raster plots of the activity per fly?
+source("RasterFunctions.R")
+binsize.minutes<-10
+processedData<-GetRasterProcessedData.DAMList(dam.list,results,exp.design,binsize.minutes)
+gps<-MakeRasterPlots(processedData)
 
 
-
+## To fix the xaxis range for direct comparison
+gps<-MakeRasterPlots(processedData,x.limits=c(0,50))
 
 
 
