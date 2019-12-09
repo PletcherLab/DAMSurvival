@@ -1,4 +1,5 @@
 require(reshape2)
+require(viridis)
 
 
 BinActivityData.DataFrame<-function(damForMelt,binsize.min){
