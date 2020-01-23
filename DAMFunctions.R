@@ -325,6 +325,14 @@ OutputSurvData<-function(result,filename="SurvData.csv"){
   write.csv(save.df, file = filename,row.names=FALSE)
 }
 
+
+OutputDeathsData<-function(result,filename="DeathsData.csv"){
+  write.csv(result, file = filename,row.names=FALSE)
+}
+
+
+
+
 #--------------------------------------------------------#
 ### Functions for plotting.
 #--------------------------------------------------------#
