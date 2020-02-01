@@ -41,7 +41,7 @@ OutputSurvData(results,filename="MyResults.csv")
 
 ## Do you want to see raster plots of the activity per fly?
 source("RasterFunctions.R")
-binsize.minutes<-10
+binsize.minutes<-30
 processedData<-GetRasterProcessedData.DAMList(dam.list,results,exp.design,binsize.minutes)
 gps<-MakeRasterPlots(processedData)
 
