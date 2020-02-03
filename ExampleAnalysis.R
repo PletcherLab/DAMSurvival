@@ -50,4 +50,13 @@ gps<-MakeRasterPlots(processedData)
 gps<-MakeRasterPlots(processedData,x.limits=c(0,50))
 
 
+## Do you want to get summary activity stats for each treatment?
+## The following function will calculate mean and SEM of activity counts
+## across individual flies, for the first part of the experiment.  If an hours
+## argument is given, e.g., hours=18, then for the first 18 hours of the experiment.
+## if no hours argument is given, then the first 24 hours of the experiment is used.
+## remove.zeros=TRUE will ignore tubes in which there was zero activity.  
+results<-SummarizeHoursActivity(dam.list,exp.design,hours=18,remove.zeros=TRUE)
+results
+
 
