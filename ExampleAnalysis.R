@@ -4,12 +4,21 @@ source("DAMFunctions.R")
 dam.list<-ImportDAMData()
 exp.design<-ImportExpDesign()
 results<-ComputeStarvationResults(dam.list,exp.design)
+
 plot.counts.dam.list(dam.list,results)
 
 ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ## Make sure to check each plot to ensure the
 ## calculations are working for your data!!!!
 ## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+## If you want to delete certain flies based on the count plots
+## you can do so here by uncommenting the following code and
+## adjusting the dam and channel lists as needed.
+dam.list.to.remove<-c(24,24)
+channel.list.to.remove<-c(25,29)
+results<-RemoveChannelsFromResults(results,dam.list.to.remove,channel.list.to.remove)
+
 
 SurvPlots(results)
 
@@ -41,7 +50,7 @@ OutputSurvData(results,filename="MyResults.csv")
 
 ## Do you want to see raster plots of the activity per fly?
 source("RasterFunctions.R")
-binsize.minutes<-30
+binsize.minutes<-10
 processedData<-GetRasterProcessedData.DAMList(dam.list,results,exp.design,binsize.minutes)
 gps<-MakeRasterPlots(processedData)
 
@@ -56,7 +65,7 @@ gps<-MakeRasterPlots(processedData,x.limits=c(0,50))
 ## argument is given, e.g., hours=18, then for the first 18 hours of the experiment.
 ## if no hours argument is given, then the first 24 hours of the experiment is used.
 ## remove.zeros=TRUE will ignore tubes in which there was zero activity.  
-results<-SummarizeHoursActivity(dam.list,exp.design,hours=18,remove.zeros=TRUE)
+results<-SummarizeHoursActivity(dam.list,exp.design,hours=24,remove.zeros=TRUE)
 results
 
 

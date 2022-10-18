@@ -3,7 +3,8 @@ require(survival)
 require(zoo)
 require(ggplot2)
 require(survminer)
-
+require(damr)
+require(ggetho)
 #--------------------------------------------------------#
 ## Functions for importing DAM data, adding new columns 
 ## and isolating data of interest.
@@ -22,7 +23,7 @@ ImportDAMData <- function(){
   dam.files.list <- gsub(pattern, replacement,  dam.files.list)
   names(dam)<-dam.files.list
   
-  dam<-Trim.DAMList(dam)
+  #dam<-Trim.DAMList(dam)
   
   dam.list.summary(dam)
   
@@ -124,7 +125,21 @@ dam.summary<-function(dam){
   print(tmp)
 }
 
-
+RemoveChannelsFromResults<-function(results,dam.to.remove,channel.to.remove){
+  if(length(dam.to.remove)!=length(channel.to.remove)){
+    stop("DAM and channel vectors need to be the same length!")
+  }
+  
+  for(i in 1:length(dam.to.remove)){
+    d<-dam.to.remove[i]
+    c<-channel.to.remove[i]
+    index1<-results$DAM==d
+    index2<-results$Channel==c
+    index3 <- !(index1 & index2)
+    results<-results[index3,]
+  }
+  results
+}
 
 #--------------------------------------------------------#
 ### Functions extracting death times and organizing into data frame.
@@ -483,7 +498,7 @@ plot.counts.dam<-function(dam, results.frame){
 
 plot.counts.dam.list<-function(dam.list,results){
   for(i in 1:length(dam.list)){
-    tmp<-paste("Plotting ",i," of ", length(dam.list),".",sep="")
+    tmp<-paste("Plotting DAM ",dam.list[i],", which is ",i," of ", length(dam.list),".",sep="")
     print(tmp)
     plot.counts.dam(dam.list[[i]],results)
   }
