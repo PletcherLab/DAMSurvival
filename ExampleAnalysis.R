@@ -15,9 +15,9 @@ plot.counts.dam.list(dam.list,results)
 ## If you want to delete certain flies based on the count plots
 ## you can do so here by uncommenting the following code and
 ## adjusting the dam and channel lists as needed.
-dam.list.to.remove<-c(24,24)
-channel.list.to.remove<-c(25,29)
-results<-RemoveChannelsFromResults(results,dam.list.to.remove,channel.list.to.remove)
+#dam.list.to.remove<-c(24,24)
+#channel.list.to.remove<-c(25,29)
+#results<-RemoveChannelsFromResults(results,dam.list.to.remove,channel.list.to.remove)
 
 
 SurvPlots(results)
