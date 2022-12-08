@@ -498,7 +498,7 @@ plot.counts.dam<-function(dam, results.frame){
 
 plot.counts.dam.list<-function(dam.list,results){
   for(i in 1:length(dam.list)){
-    tmp<-paste("Plotting DAM ",dam.list[i],", which is ",i," of ", length(dam.list),".",sep="")
+    tmp<-paste("Plotting ",i," of ", length(dam.list),".",sep="")
     print(tmp)
     plot.counts.dam(dam.list[[i]],results)
   }
