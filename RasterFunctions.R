@@ -106,7 +106,7 @@ MakeRasterPlots<-function(processedData,x.limits=NA){
   for(i in levels){
     tmp<-subset(processedData,Trt==i)
     tmp<-AddYCoords(tmp)
-    if(is.na(x.limits)){
+    if((length(x.limits)!=2) | (sum(is.na(x.limits))>0)){
       p<-ggplot(tmp,aes(ElapsedHours,Y,width=0.5)) +geom_tile(aes(fill=Counts))+ scale_fill_viridis(limits=c(0,max.count))+ ylab("Fly") + ggtitle(paste("TRT:",i))
     }
     else {
