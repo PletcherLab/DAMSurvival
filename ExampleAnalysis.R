@@ -66,6 +66,9 @@ gps<-MakeRasterPlots(processedData,x.limits=c(0,50))
 ## if no hours argument is given, then the first 24 hours of the experiment is used.
 ## remove.zeros=TRUE will ignore tubes in which there was zero activity.  
 results<-SummarizeHoursActivity(dam.list,exp.design,hours=24,remove.zeros=TRUE)
-results
 
+ggplot(results, aes(x=Trt, y=Mean, fill=Trt)) + 
+  geom_errorbar( aes(x=Trt, ymin=Mean-SEM, ymax=Mean+SEM), width=0.4, colour="black", alpha=0.9, size=1) +
+  geom_bar(stat = "identity") 
+  
 
